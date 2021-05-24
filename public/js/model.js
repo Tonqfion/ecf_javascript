@@ -4,17 +4,28 @@ import { SEARCH_BUTTON } from "./config.js";
 import { getJSON } from "./helpers.js";
 import { shortenString } from "./helpers.js";
 
+const resultBox = document.getElementById("result-box");
+const resultsHeader = document.getElementById("results-header");
+
 let searchResults = [];
-let n;
+let idNbr;
 let currentSearch;
+let limit = 20;
+
+resultsHeader.insertAdjacentHTML(
+  "afterend",
+  ` <div id="result-message" class="bg-blue-200 p-2 flex justify-center">
+    <p class="font-bold italic text-center text-blue-800">Start searching...</p>
+  </div>`
+);
 
 SEARCH_BUTTON.addEventListener("click", function () {
-  n = 1;
+  idNbr = 1;
   const parentEl = document.getElementById("results-grid");
   parentEl.innerHTML = "";
   currentSearch = SEARCH_FIELD_VALUE.value;
-  loadSearchResults(currentSearch, parentEl, n);
-  n = n + 50;
+  loadSearchResults(currentSearch, parentEl, idNbr, limit);
+  idNbr = idNbr + limit;
 });
 
 // export const loadDetail = async function (id) {
@@ -39,33 +50,38 @@ SEARCH_BUTTON.addEventListener("click", function () {
 
 // http://musicbrainz.org/ws/2/recording/?query=artistname:%22daft%20punk%22&fmt=json
 
-const loadSearchResults = async function (query, parent, start) {
+const loadSearchResults = async function (query, parent, start, maxResults) {
   try {
-    const statusMessage = document.getElementById("result-message");
-    statusMessage.innerHTML = `
+    const resultMessage = document.getElementById("result-message");
+    resultMessage.innerHTML = `<div id="result-message" class="bg-blue-200 p-2 flex justify-center">
+        
       <svg
-        class="animate-spin ml-1 mr-3 h-5 w-5 text-blue-800"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        ></circle>
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
-      </svg>`;
+      class="animate-spin ml-1 mr-3 h-5 w-5 text-blue-800"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      ></circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+      </div>`;
+
     const data = await getJSON(
-      `${API_URL}?query=artistname:"${query}"&fmt=json&limit=50&offset=${start}`
+      `${API_URL}?query=artistname:"${query}"&fmt=json&limit=${maxResults}&offset=${start}`
     );
+    resultMessage.innerHTML = "";
+    resultMessage.classList.remove("p-2");
     searchResults = data.recordings.map((rec) => {
       return {
         rank: start++,
@@ -84,8 +100,9 @@ const loadSearchResults = async function (query, parent, start) {
         console.log(markUp);
         return markUp;
       } else {
-        statusMessage.innerHTML = `
-        <p class="font-bold italic text-center text-blue-800">Sorry, no results were found. Check your spelling, or try again</p>`;
+        resultMessage.innerHTML = ` <div id="result-message" class="bg-blue-200 p-2 flex justify-center">
+        <p class="font-bold italic text-center text-blue-800">Sorry, no results were found. Check your spelling or try a new search query.</p>
+      </div>`;
       }
     }
 
@@ -100,7 +117,7 @@ const loadSearchResults = async function (query, parent, start) {
     }
 
     parent.insertAdjacentHTML("beforeend", generateMarkUp(searchResults));
-    return n;
+    return idNbr;
   } catch (err) {
     console.log(err);
     throw err;
@@ -149,7 +166,7 @@ function getDocHeight() {
 document.addEventListener("scroll", function (event) {
   if (getDocHeight() == getScrollXY()[1] + window.innerHeight) {
     const parentEl = document.getElementById("results-grid");
-    loadSearchResults(currentSearch, parentEl, n);
-    n = n + 50;
+    loadSearchResults(currentSearch, parentEl, idNbr, limit);
+    idNbr = idNbr + limit;
   }
 });
