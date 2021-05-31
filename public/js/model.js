@@ -1,16 +1,7 @@
-import { API_URL } from "./config.js";
-import { SEARCH_FIELD_VALUE } from "./config.js";
-import { SEARCH_BUTTON } from "./config.js";
-import { PARENT_ELEMENT } from "./config.js";
-import { SEARCH_FILTER } from "./config.js";
-import { RESULT_MESSAGE } from "./config.js";
-import { RESULT_COUNT_MESSAGE } from "./config.js";
+import { CONSTANTS } from "./config.js";
 
 import { getJSON } from "./helpers.js";
 import { shortenString } from "./helpers.js";
-
-const resultBox = document.getElementById("result-box");
-const resultsHeader = document.getElementById("results-header");
 
 let searchResults = [];
 let idNbr;
@@ -19,24 +10,24 @@ let limit = 25;
 let startingPoint;
 let totalResults;
 let constructedURL;
-let searchFilterInput = SEARCH_FILTER.value;
+let searchFilterInput = CONSTANTS.SEARCH_FILTER.value;
 
-SEARCH_FILTER.addEventListener("input", function (ev) {
+CONSTANTS.SEARCH_FILTER.addEventListener("input", function (ev) {
   ev.preventDefault();
   searchFilterInput = ev.target.value;
   console.log(searchFilterInput);
 });
 
 // Event listener au clic et à la touche entrée pour initialiser la première recherche
-SEARCH_BUTTON.addEventListener("click", function () {
+CONSTANTS.SEARCH_BUTTON.addEventListener("click", function () {
   // J'initialise (ou réinitialise) ma recherche en mettant l'offset (startingPoint) à 0, en relançant le compteur de résultats (affichage uniquement) et en vidant la grille de résultat
   startingPoint = 0;
   idNbr = 1;
-  PARENT_ELEMENT.innerHTML = "";
-  currentSearch = SEARCH_FIELD_VALUE.value;
+  CONSTANTS.PARENT_ELEMENT.innerHTML = "";
+  currentSearch = CONSTANTS.SEARCH_FIELD_VALUE.value;
   constructURLpart(searchFilterInput, currentSearch);
   console.log(constructedURL);
-  loadSearchResults(PARENT_ELEMENT, startingPoint, limit);
+  loadSearchResults(CONSTANTS.PARENT_ELEMENT, startingPoint, limit);
 });
 
 document.addEventListener(
@@ -44,11 +35,11 @@ document.addEventListener(
   _.throttle(function (event) {
     if (getDocHeight() == getScrollXY()[1] + window.innerHeight) {
       if (startingPoint >= totalResults) {
-        RESULT_MESSAGE.innerHTML = `
+        CONSTANTS.RESULT_MESSAGE.innerHTML = `
         <p class="font-bold italic text-center text-blue-800">No more results to show!</p>
       `;
       } else {
-        loadSearchResults(PARENT_ELEMENT, startingPoint, limit);
+        loadSearchResults(CONSTANTS.PARENT_ELEMENT, startingPoint, limit);
       }
     }
   }, 1000)
@@ -78,8 +69,8 @@ document.addEventListener(
 
 const loadSearchResults = async function (parent, start, maxResults) {
   try {
-    RESULT_MESSAGE.innerHTML = "";
-    RESULT_MESSAGE.innerHTML = `<svg
+    CONSTANTS.RESULT_MESSAGE.innerHTML = "";
+    CONSTANTS.RESULT_MESSAGE.innerHTML = `<svg
       class="animate-spin ml-1 mr-3 h-5 w-5 text-blue-800"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -102,18 +93,18 @@ const loadSearchResults = async function (parent, start, maxResults) {
 
     const data = await getJSON(
       encodeURI(
-        `${API_URL}?query=${constructedURL}&fmt=json&limit=${maxResults}&offset=${start}`
+        `${CONSTANTS.API_URL}?query=${constructedURL}&fmt=json&limit=${maxResults}&offset=${start}`
       )
     );
     console.log(
       encodeURI(
-        `${API_URL}?query=${constructedURL}&fmt=json&limit=${maxResults}&offset=${start}`
+        `${CONSTANTS.API_URL}?query=${constructedURL}&fmt=json&limit=${maxResults}&offset=${start}`
       )
     );
     totalResults = data.count;
-    RESULT_COUNT_MESSAGE.classList.remove("hidden");
-    RESULT_COUNT_MESSAGE.classList.add("flex");
-    RESULT_COUNT_MESSAGE.innerHTML = `<p class="font-bold italic text-center text-blue-800">
+    CONSTANTS.RESULT_COUNT_MESSAGE.classList.remove("hidden");
+    CONSTANTS.RESULT_COUNT_MESSAGE.classList.add("flex");
+    CONSTANTS.RESULT_COUNT_MESSAGE.innerHTML = `<p class="font-bold italic text-center text-blue-800">
       We found ${totalResults} results for this search.
     </p>`;
     console.log(totalResults);
@@ -136,7 +127,7 @@ const loadSearchResults = async function (parent, start, maxResults) {
         const markUp = data.map(generateMarkupRow).join("");
         return markUp;
       } else {
-        RESULT_MESSAGE.innerHTML = `
+        CONSTANTS.RESULT_MESSAGE.innerHTML = `
         <p class="font-bold italic text-center text-blue-800">Sorry, no results were found. Check your spelling or try a new search query.</p>
       `;
         const markUp = "";
