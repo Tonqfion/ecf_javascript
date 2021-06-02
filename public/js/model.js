@@ -1,7 +1,8 @@
 import { CONSTANTS } from "./config.js";
 
-import { getJSON } from "./helpers.js";
-import { shortenString } from "./helpers.js";
+import { GET_JSON } from "./helpers.js";
+import { SHORTEN_STRING } from "./helpers.js";
+import { CONSTRUCT_URL_PART } from "./helpers.js";
 
 let searchResults = [];
 let idNbr;
@@ -9,8 +10,8 @@ let currentSearch;
 let limit = 25;
 let startingPoint;
 let totalResults;
-let constructedURL;
 let searchFilterInput = CONSTANTS.SEARCH_FILTER.value;
+let constructedURL;
 
 CONSTANTS.SEARCH_FILTER.addEventListener("input", function (ev) {
   ev.preventDefault();
@@ -25,29 +26,14 @@ CONSTANTS.SEARCH_BUTTON.addEventListener("click", function () {
   idNbr = 1;
   CONSTANTS.PARENT_ELEMENT.innerHTML = "";
   currentSearch = CONSTANTS.SEARCH_FIELD_VALUE.value;
-  constructURLpart(searchFilterInput, currentSearch);
+  constructedURL = CONSTRUCT_URL_PART(searchFilterInput, currentSearch);
   console.log(constructedURL);
   loadSearchResults(CONSTANTS.PARENT_ELEMENT, startingPoint, limit);
 });
 
-document.addEventListener(
-  "scroll",
-  _.throttle(function (event) {
-    if (getDocHeight() == getScrollXY()[1] + window.innerHeight) {
-      if (startingPoint >= totalResults) {
-        CONSTANTS.RESULT_MESSAGE.innerHTML = `
-        <p class="font-bold italic text-center text-blue-800">No more results to show!</p>
-      `;
-      } else {
-        loadSearchResults(CONSTANTS.PARENT_ELEMENT, startingPoint, limit);
-      }
-    }
-  }, 1000)
-);
-
 // export const loadDetail = async function (id) {
 //   try {
-//     const data = await getJSON(`${API_URL}${id}`);
+//     const data = await GET_JSON(`${API_URL}${id}`);
 
 //     const { recipe } = data.data;
 //     state.recipe = {
@@ -68,6 +54,7 @@ document.addEventListener(
 // http://musicbrainz.org/ws/2/recording/?query=artistname:%22daft%20punk%22&fmt=json
 
 const loadSearchResults = async function (parent, start, maxResults) {
+  document.removeEventListener("scroll", scrollLoad);
   try {
     CONSTANTS.RESULT_MESSAGE.innerHTML = "";
     CONSTANTS.RESULT_MESSAGE.innerHTML = `<svg
@@ -91,7 +78,7 @@ const loadSearchResults = async function (parent, start, maxResults) {
       ></path>
     </svg>`;
 
-    const data = await getJSON(
+    const data = await GET_JSON(
       encodeURI(
         `${CONSTANTS.API_URL}?query=${constructedURL}&fmt=json&limit=${maxResults}&offset=${start}`
       )
@@ -111,17 +98,27 @@ const loadSearchResults = async function (parent, start, maxResults) {
     searchResults = data.recordings.map((rec) => {
       return {
         rank: idNbr++,
-        id: rec.id,
-        title: shortenString(rec.title, 50),
-        artist: shortenString(rec["artist-credit"][0].name, 50), //
+        recordingID: rec.id,
+        title: SHORTEN_STRING(rec.title, 50),
+        artist:
+          rec["artist-credit"].length === 1
+            ? SHORTEN_STRING(rec["artist-credit"][0].name, 50)
+            : SHORTEN_STRING(rec["artist-credit"][0].name, 50) +
+              '<span class="italic"> & </span>' +
+              SHORTEN_STRING(rec["artist-credit"][1].name, 50),
+        artistID: rec["artist-credit"][0].artist.id,
         mainRelease: rec.hasOwnProperty("releases")
-          ? shortenString(rec.releases[0].title, 80)
+          ? SHORTEN_STRING(rec.releases[0].title, 80)
           : '<span class="font-bold italic text-red-800">No information on release</span>',
+        mainRelaseID: rec.hasOwnProperty("releases")
+          ? rec["releases"][0].id
+          : "",
       };
     });
-    console.log(startingPoint);
-    console.log(idNbr);
+    console.log(searchResults[0]);
+
     startingPoint += maxResults;
+
     function generateMarkUp(data) {
       if (data.length > 0) {
         const markUp = data.map(generateMarkupRow).join("");
@@ -146,6 +143,8 @@ const loadSearchResults = async function (parent, start, maxResults) {
     }
 
     parent.insertAdjacentHTML("beforeend", generateMarkUp(searchResults));
+    document.addEventListener("scroll", scrollLoad);
+
     // return idNbr;
   } catch (err) {
     console.log(err);
@@ -192,14 +191,16 @@ function getDocHeight() {
   );
 }
 
-function constructURLpart(searchType, query) {
-  if (searchType === "artist-opt") {
-    constructedURL = `artist:"${query}" OR artistname:"${query}"`;
-  } else if (searchType === "track-opt") {
-    constructedURL = `recording:"${query}"`;
-  } else if (searchType === "release-opt") {
-    constructedURL = `release:"${query}"`;
-  } else {
-    constructedURL = `recording:"${query}" OR release:"${query}" OR artist:"${query}" OR artistname:"${query}"`;
+function scrollLoad() {
+  if (getDocHeight() == getScrollXY()[1] + window.innerHeight) {
+    if (startingPoint >= totalResults) {
+      CONSTANTS.RESULT_MESSAGE.innerHTML = `
+        <p class="font-bold italic text-center text-blue-800">No more results to show!</p>
+      `;
+    } else {
+      loadSearchResults(CONSTANTS.PARENT_ELEMENT, startingPoint, limit);
+    }
   }
 }
+
+//https://musicbrainz.org/ws/2/recording/bd44e72c-efaf-47c3-b284-5da787d02583?inc=genres+artists+ratings&fmt=json
