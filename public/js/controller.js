@@ -1,8 +1,11 @@
 import { CONSTANTS } from "./config.js";
-
+import * as detailsModel from "./detailsModel.js";
 import { GET_JSON } from "./helpers.js";
 import { SHORTEN_STRING } from "./helpers.js";
 import { CONSTRUCT_URL_PART } from "./helpers.js";
+import TrackView from "./view/trackView.js";
+
+detailsModel.loadTrackDetail("738920d3-c6e6-41c7-b504-57761bb625fd");
 
 let searchResults = [];
 let idNbr;
@@ -94,7 +97,6 @@ const loadSearchResults = async function (parent, start, maxResults) {
     CONSTANTS.RESULT_COUNT_MESSAGE.innerHTML = `<p class="font-bold italic text-center text-blue-800">
       We found ${totalResults} results for this search.
     </p>`;
-    console.log(totalResults);
     searchResults = data.recordings.map((rec) => {
       return {
         rank: idNbr++,
@@ -115,8 +117,7 @@ const loadSearchResults = async function (parent, start, maxResults) {
           : "",
       };
     });
-    console.log(searchResults[0]);
-
+    console.log(searchResults);
     startingPoint += maxResults;
 
     function generateMarkUp(data) {
@@ -138,13 +139,29 @@ const loadSearchResults = async function (parent, start, maxResults) {
           <p class="w-3/12 border-l-2 border-blue-100 pl-3">${result.artist}</p>
           <p class="w-3/12 border-l-2 border-blue-100 pl-3">${result.title}</p>
           <p class="w-3/12 border-l-2 border-blue-100 pl-3">${result.mainRelease}</p>
-          <p class="w-2/12 border-l-2 border-blue-100 pl-3">Action</p>
+          <p class="w-2/12 border-l-2 border-blue-100 pl-3">
+          <button type="button" id=${result.recordingID}
+              class="view-track-details w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+              View Track Details
+          </button></p>
       </div>`;
     }
 
     parent.insertAdjacentHTML("beforeend", generateMarkUp(searchResults));
+    if (totalResults <= limit) {
+      CONSTANTS.RESULT_MESSAGE.innerHTML = `
+    <p class="font-bold italic text-center text-blue-800">No more results to show!</p>
+  `;
+    }
     document.addEventListener("scroll", scrollLoad);
 
+    const trackDetailsBtn = document.querySelectorAll(".view-track-details");
+    trackDetailsBtn.forEach(function (trackDetailBtn) {
+      trackDetailBtn.addEventListener("click", function () {
+        const trackToShow = trackDetailBtn.id;
+        controlTrackDetail(trackToShow);
+      });
+    });
     // return idNbr;
   } catch (err) {
     console.log(err);
@@ -204,3 +221,20 @@ function scrollLoad() {
 }
 
 //https://musicbrainz.org/ws/2/recording/bd44e72c-efaf-47c3-b284-5da787d02583?inc=genres+artists+ratings&fmt=json
+
+const controlTrackDetail = async function (trackID) {
+  try {
+    const id = trackID;
+
+    if (!id) return;
+
+    TrackView.renderSpinner();
+    // 1) Load the recipe from Model
+
+    await detailsModel.loadTrackDetail(id);
+    // 2) Rendering Recipe
+    // TrackView.render(detailsModel.details.trackDetails);
+  } catch (err) {
+    console.log(err);
+  }
+};
