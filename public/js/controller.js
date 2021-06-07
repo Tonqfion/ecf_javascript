@@ -3,7 +3,7 @@ import * as detailsModel from "./detailsModel.js";
 import { GET_JSON } from "./helpers.js";
 import { SHORTEN_STRING } from "./helpers.js";
 import { CONSTRUCT_URL_PART } from "./helpers.js";
-import TrackView from "./view/trackView.js";
+// import TrackView from "./view/trackView.js";
 
 detailsModel.loadTrackDetail("738920d3-c6e6-41c7-b504-57761bb625fd");
 
@@ -111,7 +111,7 @@ const loadSearchResults = async function (parent, start, maxResults) {
         artistID: rec["artist-credit"][0].artist.id,
         mainRelease: rec.hasOwnProperty("releases")
           ? SHORTEN_STRING(rec.releases[0].title, 80)
-          : '<span class="font-bold italic text-red-800">No information on release</span>',
+          : '<span class="font-bold italic text-red-800">No information on releases</span>',
         mainRelaseID: rec.hasOwnProperty("releases")
           ? rec["releases"][0].id
           : "",
@@ -224,14 +224,10 @@ function scrollLoad() {
 
 const controlTrackDetail = async function (trackID) {
   try {
-    const id = trackID;
+    // TrackView.renderSpinner();
 
-    if (!id) return;
+    await detailsModel.loadTrackDetail(trackID);
 
-    TrackView.renderSpinner();
-    // 1) Load the recipe from Model
-
-    await detailsModel.loadTrackDetail(id);
     // 2) Rendering Recipe
     // TrackView.render(detailsModel.details.trackDetails);
   } catch (err) {
