@@ -1,6 +1,10 @@
+import { CONSTANTS } from "../config.js";
+
 class TrackView {
-  #parentElement = document.getElementById("modal-details");
+  #modal = CONSTANTS.MODAL_WINDOW;
+  #parentElement = document.getElementById("modal-content");
   #data;
+
   render(data) {
     this.#data = data;
     const markup = this.#generateMarkup();
@@ -11,7 +15,8 @@ class TrackView {
     this.#parentElement.innerHTML = "";
   }
   renderSpinner() {
-    const markup = `<svg
+    this.#modal.classList.toggle("hidden");
+    const markup = `<div class="mx-auto flex-col justify-center	items-center"><svg
     class="animate-spin ml-1 mr-3 h-5 w-5 text-blue-800"
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -31,12 +36,46 @@ class TrackView {
       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
     ></path>
   </svg>
+  </div>
           `;
     this.#clear();
     this.#parentElement.insertAdjacentHTML("afterbegin", markup);
   }
 
   #generateMarkup() {
+    return `<h2 class="text-3xl leading-6 font-medium text-gray-900" id="modal-title">
+    ${this.#data.trackTitle}
+  </h2>
+  <div class="mt-2">
+    <p class="border-b-2 pb-2">
+     First release : ${this.#data.trackReleaseDate} - Length : ${
+      this.#data.trackLength
+    }
+    </p>
+    <h3 class="mt-2 text-xl text-gray-900">Artist credits</h3>
+    <p class="border-b-2 pb-2">
+      ${this.#data.trackArtists[0].name}
+    </p>
+    <h3 class="mt-2 text-xl text-gray-900">Release list</h3>
+    <p class="border-b-2 pb-2">
+    ${this.#data.trackReleasesCleanOne[0].title}
+    </p>
+    <h3 class="mt-2 text-xl text-gray-900">Genres</h3>
+    <p class="border-b-2 pb-2">
+    ${this.#data.trackGenres[0].name}
+    </p>
+    <h3 class="mt-2 text-xl text-gray-900">Rating</h3>
+    <p class="border-b-2 pb-2">
+    ${this.#data.trackRating}
+    </p>
+    <h2 class="mt-16 text-3xl leading-6 font-medium text-gray-900" id="modal-title">
+      Cover arts
+    </h2>
+  </div>`;
+  }
+
+  /*
+  #generateMarkupBase() {
     return `<figure class="recipe__fig">
     <img src="${this.#data.image}" alt="${
       this.#data.title
@@ -133,6 +172,7 @@ class TrackView {
         </div>
       </li>`;
   }
+  */
 }
 
 export default new TrackView();

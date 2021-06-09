@@ -3,7 +3,7 @@ import * as detailsModel from "./detailsModel.js";
 import { GET_JSON } from "./helpers.js";
 import { SHORTEN_STRING } from "./helpers.js";
 import { CONSTRUCT_URL_PART } from "./helpers.js";
-// import TrackView from "./view/trackView.js";
+import TrackView from "./view/trackView.js";
 
 detailsModel.loadTrackDetail("738920d3-c6e6-41c7-b504-57761bb625fd");
 
@@ -224,13 +224,17 @@ function scrollLoad() {
 
 const controlTrackDetail = async function (trackID) {
   try {
-    // TrackView.renderSpinner();
+    TrackView.renderSpinner();
 
     await detailsModel.loadTrackDetail(trackID);
 
     // 2) Rendering Recipe
-    // TrackView.render(detailsModel.details.trackDetails);
+    TrackView.render(detailsModel.details.trackDetails);
   } catch (err) {
     console.log(err);
   }
 };
+
+CONSTANTS.CLOSE_MODAL.addEventListener("click", function () {
+  CONSTANTS.MODAL_WINDOW.classList.toggle("hidden");
+});

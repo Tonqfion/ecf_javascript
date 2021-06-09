@@ -1,5 +1,5 @@
 import { CONSTANTS } from "./config.js";
-
+import { CONVERT_MILLIS_TO_MINS_SECONDS } from "./helpers.js";
 import { GET_JSON } from "./helpers.js";
 import { SHORTEN_STRING } from "./helpers.js";
 import { CONSTRUCT_URL_PART } from "./helpers.js";
@@ -35,9 +35,12 @@ export const loadTrackDetail = async function (id) {
     */
 
     details.trackDetails = {
-      trackTitle: trackData.title,
+      trackTitle: trackData.title ?? "No title provided",
       trackID: trackData.id,
-      trackLength: trackData.length ?? "No duration provided",
+      trackReleaseDate: trackData["first-release-date"] ?? "No date provided",
+      trackLength: trackData.length
+        ? CONVERT_MILLIS_TO_MINS_SECONDS(trackData.length)
+        : "No duration provided",
       trackArtists: trackData["artist-credit"].length
         ? trackData["artist-credit"]
         : "No information on artists",

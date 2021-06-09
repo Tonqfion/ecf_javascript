@@ -42,3 +42,9 @@ export function CONSTRUCT_URL_PART(searchType, query) {
     return `recording:"${query}" OR release:"${query}" OR artist:"${query}" OR artistname:"${query}"`;
   }
 }
+
+export function CONVERT_MILLIS_TO_MINS_SECONDS(tracklength) {
+  let minutes = Math.floor(tracklength / 60000);
+  let seconds = ((tracklength % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+}

@@ -7,4 +7,6 @@ export const CONSTANTS = {
   SEARCH_FILTER: document.getElementById("search-filter"),
   RESULT_MESSAGE: document.getElementById("result-message"),
   RESULT_COUNT_MESSAGE: document.getElementById("result-count"),
+  MODAL_WINDOW: document.getElementById("modal-details"),
+  CLOSE_MODAL: document.getElementById("close-modal"),
 };
